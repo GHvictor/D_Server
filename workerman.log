@@ -5598,3 +5598,63 @@ Stack trace:
 #12 /home/wind/workerman/Workerman/Worker.php(320): Workerman\Worker::forkWorkers()
 #13 /home/wind/workerman/start.php(17): Workerman\Worker::runAll()
 #14 {main}
+2015-03-31 21:10:28 Workerman[start.php] start
+2015-03-31 21:10:34 tcp://127.0.0.1:4003 connect fail del 127.0.0.1:4003 from store
+2015-03-31 21:10:34 tcp://127.0.0.1:4002 connect fail del 127.0.0.1:4002 from store
+2015-03-31 21:10:54 client_id:1	client_ip:192.168.32.1
+exception 'PDOException' with message 'SQLSTATE[42S22]: Column not found: 1054 Unknown column 'userIde' in 'where clause'' in /home/wind/workerman/GatewayWorker/Lib/DbConnection.php:1577
+Stack trace:
+#0 /home/wind/workerman/GatewayWorker/Lib/DbConnection.php(1577): PDO->prepare('SELECT password...')
+#1 /home/wind/workerman/GatewayWorker/Lib/DbConnection.php(1765): GatewayWorker\Lib\DbConnection->execute('SELECT password...', Array)
+#2 /home/wind/workerman/Applications/Decipher/Event.php(36): GatewayWorker\Lib\DbConnection->single()
+#3 /home/wind/workerman/GatewayWorker/BusinessWorker.php(126): Event::onMessage(1, '{"type":"login"...')
+#4 [internal function]: GatewayWorker\BusinessWorker->onGatewayMessage(Object(Workerman\Connection\AsyncTcpConnection), Array)
+#5 /home/wind/workerman/Workerman/Connection/TcpConnection.php(399): call_user_func(Array, Object(Workerman\Connection\AsyncTcpConnection), Array)
+#6 [internal function]: Workerman\Connection\TcpConnection->baseRead(Resource id #56, 2, NULL)
+#7 /home/wind/workerman/Workerman/Events/Libevent.php(204): event_base_loop(Resource id #26)
+#8 /home/wind/workerman/Workerman/Worker.php(1182): Workerman\Events\Libevent->loop()
+#9 /home/wind/workerman/GatewayWorker/BusinessWorker.php(66): Workerman\Worker->run()
+#10 /home/wind/workerman/Workerman/Worker.php(741): GatewayWorker\BusinessWorker->run()
+#11 /home/wind/workerman/Workerman/Worker.php(715): Workerman\Worker::forkOneWorker(Object(GatewayWorker\BusinessWorker))
+#12 /home/wind/workerman/Workerman/Worker.php(320): Workerman\Worker::forkWorkers()
+#13 /home/wind/workerman/start.php(17): Workerman\Worker::runAll()
+#14 {main}
+2015-03-31 21:15:10 Workerman[start.php] start
+2015-03-31 21:15:10 Workerman[start.php] is running
+2015-03-31 21:15:37 Workerman[start.php] start
+2015-03-31 21:15:37 Workerman[start.php] is running
+2015-03-31 21:16:17 Workerman[start.php] start
+2015-03-31 21:16:17 Workerman[start.php] is running
+2015-03-31 21:18:40 Workerman[start.php] start
+2015-03-31 21:23:51 Workerman[start.php] start
+2015-03-31 21:23:51 Workerman[start.php] is running
+2015-03-31 21:29:20 Workerman[start.php] start
+2015-03-31 22:26:43 Workerman[start.php] stop
+2015-03-31 22:26:43 Workerman[start.php] is stoping ...
+2015-03-31 22:26:43 Workerman[start.php] Stopping ...
+2015-03-31 22:26:43 Workerman[start.php] has been stopped
+2015-03-31 22:26:43 Workerman[start.php] stop success
+2015-03-31 22:26:56 Workerman[start.php] start
+2015-04-01 08:23:39 Workerman[start.php] start
+2015-04-01 13:17:47 Workerman[start.php] stop
+2015-04-01 13:17:47 Workerman[start.php] not run
+2015-04-01 13:17:47 Workerman[start.php] is stoping ...
+2015-04-01 13:17:47 Workerman[start.php] stop success
+2015-04-01 15:42:00 Workerman[start.php] start
+2015-04-02 08:16:17 Workerman[start.php] start
+2015-04-02 15:06:59 Workerman[start.php] start
+2015-04-02 15:09:26 Workerman[start.php] stop
+2015-04-02 15:09:26 Workerman[start.php] is stoping ...
+2015-04-02 15:09:26 Workerman[start.php] stop success
+2015-04-02 15:10:33 Workerman[start.php] start
+2015-04-02 15:12:27 Workerman[start.php] start
+2015-04-03 07:30:36 Workerman[start.php] start
+2015-04-07 21:02:24 Workerman[start.php] start
+2015-04-07 21:15:23 Workerman[start.php] stop
+2015-04-07 21:15:23 Workerman[start.php] is stoping ...
+2015-04-07 21:15:23 Workerman[start.php] stop success
+2015-04-07 21:26:11 Workerman[start.php] start
+2015-04-07 21:33:09 Workerman[start.php] start
+2015-04-07 21:34:11 Workerman[start.php] stop
+2015-04-07 21:34:11 Workerman[start.php] is stoping ...
+2015-04-07 21:34:11 Workerman[start.php] stop success

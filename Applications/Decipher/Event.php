@@ -15,7 +15,7 @@ class Event
     * 有消息时
     * @param int $client_id
     * @param string $message
-    */
+     */
    public static function onMessage($client_id, $message)
    {
         // 获取客户端请求
@@ -27,19 +27,19 @@ class Event
         
         switch($message_data['type'])
         {      
-	    case 'login':
+	    case '0':
 		echo "成功";
                 $client_name = $message_data['account'];
                 $client_pass = $message_data['password']; 
 
                 $db_login = Db::instance('DecipherDb');
-                if($client_pass == $db_login->select('password,userId')->from('UserInf')->where("userIde = '$client_name' ")->single()){
+                if($client_pass == $db_login->select('password,userName')->from('UserInf')->where("userName = '$client_name' ")->single()){
                         echo "登录";
 			Gateway::sendToCurrentClient('{"type":"back","re_message":"true"}');
 		}
                 else{
-			Gateway::sendToCurrentClient('{"type":"back","re_message":"false"}');	
-                        echo "失败";
+			Gateway::sendToCurrentClient('{"type":"back","re_message":"false"}');
+			echo "失败";
 		}
 	    break;
 

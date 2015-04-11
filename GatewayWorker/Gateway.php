@@ -249,6 +249,7 @@ class Gateway extends Worker
             $this->log($msg);
             return false;
         }
+	//echo "$address \n";
         return true;
     }
     

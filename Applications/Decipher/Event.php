@@ -15,7 +15,10 @@ class Event
     * 有消息时
     * @param int $client_id
     * @param string $message
-     */
+    */
+   private static $db;
+   private static $client_name;
+   private static $client_pass;
    public static function onMessage($client_id, $message)
    {
         // 获取客户端请求
@@ -24,17 +27,22 @@ class Event
         {
             return ;
         }
-        
+	global $db;
+        $db = Db::instance('DecipherDb');
         switch($message_data['type'])
         {      
 	    case '0':
 		echo "成功";
-                $client_name = $message_data['account'];
-                $client_pass = $message_data['password']; 
+                global $client_name;
+		global $client_pass;
 
-                $db_login = Db::instance('DecipherDb');
-                if($client_pass == $db_login->select('password,userName')->from('UserInf')->where("userName = '$client_name' ")->single()){
+		$client_name = $message_data['account'];
+		$client_pass = $message_data['password']; 
+
+                if($client_pass == $db->single("select password from UserInf where userName = '$client_name' ")){
                         echo "登录";
+			$re_client_id = $client_id + 1;
+                 	$row_cout = $db->query("update Id_Name set clientId = '$re_client_id' where clientName = '$client_name' ");
 			Gateway::sendToCurrentClient('{"type":"back","re_message":"true"}');
 		}
                 else{
@@ -42,33 +50,12 @@ class Event
 			echo "失败";
 		}
 	    break;
-
-            // 更新用户
-            case 'update':
-                // 转播给所有用户
-                Gateway::sendToAll(json_encode(
-                        array(
-                                'type'     => 'update',
-                                'id'         => $client_id,
-                                'angle'   => $message_data["angle"]+0,
-                                'momentum' => $message_data["momentum"]+0,
-                                'x'                   => $message_data["x"]+0,
-                                'y'                   => $message_data["y"]+0,
-                                'life'                => 1,
-                                'name'           => isset($message_data['name']) ? $message_data['name'] : 'Guest.'.$client_id,
-                                'authorized'  => false,
-                                )
-                        ));
-                return;
             // 聊天
-            case 'message':
-                // 向大家说
-                $new_message = array(
-                    'type'=>'message', 
-                    'id'=>$client_id,
-                    'message'=>$message_data['message'],
-                );
-                return Gateway::sendToAll(json_encode($new_message));
+            case '1':
+		$reClientName = $message_data['re_account'];
+		$reClientId = $db->single("select clientId from Id_Name where clientName = '$reClientName' ");
+	
+	        return Gateway::sendToClient($reClientId,$message_data['message']); 
         }
    }
    
@@ -79,6 +66,12 @@ class Event
    public static function onClose($client_id)
    {
        // 广播 xxx 退出了
+       global $client_name;
+       global $db;
+       
+       echo $client_name;
+       $db = Db::instance('DecipherDb');
+       $row_cout = $db->query("update Id_Name set clientId = -1 where clientName = '$client_name' ");	
        GateWay::sendToAll(json_encode(array('type'=>'closed', 'id'=>$client_id)));
    }
 }

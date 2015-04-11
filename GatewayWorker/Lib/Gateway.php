@@ -207,12 +207,14 @@ class Gateway
    {
        // 如果是发给当前用户则直接获取上下文中的地址
        if($client_id === Context::$client_id || $client_id === null)
-       {
+       {	
            $address = Context::$local_ip.':'.Context::$local_port;
+	   //echo "$address 当前地址";
        }
        else
        {
            $address = Store::instance('gateway')->get('gateway-'.$client_id);
+	   //echo "$address 发送\n";	
            if(!$address)
            {
                return false;
@@ -221,6 +223,8 @@ class Gateway
        $gateway_data = GatewayProtocol::$empty;
        $gateway_data['cmd'] = $cmd;
        $gateway_data['client_id'] = $client_id ? $client_id : Context::$client_id;
+       //echo $gateway_data['client_id'];
+       //echo " +++++ $client_id  \n ";
        $gateway_data['body'] = $message;
        
        return self::sendToGateway($address, $gateway_data);

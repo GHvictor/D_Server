@@ -71,32 +71,42 @@ class Event
 	        return Gateway::sendToClient($reClientId,$message_data['message']);
 	    // Shake
 	    case '3':
-/*
+                global $client_account;
+		$client_account = $message_data['account'];
 		$db->query("update ShakeList set shakeTime = SYSDATE() 
-		            where clientAccount = '$message_data['']' ");
+		            where clientAccount = '$client_account' ");
 		$res = $db->query("select userAccount,userPhoto,gender,userName
 				   from UserInf where userAccount = (select clientAccount
-                                   from ShakeList where clientAccount<>'$message_data['']' 
+                                   from ShakeList where clientAccount<>'$client_account' 
                                    and ABS(TIMEDIFF( (select shakeTime from ShakeList
-                                   where clientAccount='$message_data['']'), shakeTime) )<3
-                                   order by ABS(TIMEDIFF( (select shakeTime from ShakeList
-			              			   where clientAccount='$message_data['']'),
-				               shakeTime) ) ASC limit 1 offset 0)");
-		while($row = mysql_fetch_assoc($res)){
-			$rows[] = $row;
+                                                      where clientAccount='$client_account'),
+                                                      shakeTime) )<100 order by ABS(
+                                                      TIMEDIFF( (select shakeTime from ShakeList
+			              			        where clientAccount='$client_account'),
+				                      shakeTime) ) ASC limit 1 offset 0)");
+
+                if($res){
+			var_dump($res[0][userAccount] );
+			print_r($res);/*
+			while($row = mysql_fetch_assoc($res)){
+				$rows[] = $row;
+			print_r($row);
+			}*/
+		}else{
+		     echo "我乐个趣";
 		}
+
 		$sendMessage = '{"re_type":"3","re_message":[';
-		foreach($rows as $key=>$k){
-			echo $k['userAccount']."---".$k['gender']."---".$k['userName'].;
-			$sendMessage = $sendMessage.'{"re_account":"'$k['userAccount']'",
+		foreach($res as $key => $k){
+			echo $k[userAccount]."---".$k[gender]."---".$k[userName];
+		/*	$sendMessage = $sendMessage.'{"re_account":"'$k['userAccount']'",
 						      "re_photo":"'$k['userPhoto']'",
                                                       "re_gender":"'$k['gender']'",
-                                                      "re_name":"'$k['userName']'"},'
-		}
+                                                      "re_name":"'$k['userName']'"},';
+		*/}
 		$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
 		$re_message = $re_message.']}';
 		Gateway::sendToCurrentClient($re_message);
-*/
         }
    }
    

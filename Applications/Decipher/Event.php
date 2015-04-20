@@ -9,6 +9,9 @@
 
 use \GatewayWorker\Lib\Gateway;
 use \GatewayWorker\Lib\Db;
+/**
+ *Code by Feng
+ */
 class Event
 {
    /**
@@ -19,6 +22,7 @@ class Event
    private static $db;
    private static $client_account;
    private static $client_pass;
+
    public static function onMessage($client_id, $message)
    {
         // 获取客户端请求
@@ -28,14 +32,13 @@ class Event
             return ;
         }
 	global $db;
+	global $client_account;
+	global $client_pass;
         $db = Db::instance('DecipherDb');
         switch($message_data['type'])
         {   // Login   
 	    case '0':
 		echo "成功";
-                global $client_account;
-		global $client_pass;
-
 		$client_account = $message_data['account'];
 		$client_pass = $message_data['password']; 
 
@@ -71,8 +74,7 @@ class Event
 	        return Gateway::sendToClient($reClientId,$message_data['message']);
 	    // Shake
 	    case '3':
-                global $client_account;
-		$client_account = $message_data['account'];
+	    //	$client_account = $message_data['account'];
 		$db->query("update ShakeList set shakeTime = SYSDATE() 
 		            where clientAccount = '$client_account' ");
 		$res = $db->query("select userAccount,userPhoto,gender,userName
@@ -80,33 +82,31 @@ class Event
                                    from ShakeList where clientAccount<>'$client_account' 
                                    and ABS(TIMEDIFF( (select shakeTime from ShakeList
                                                       where clientAccount='$client_account'),
-                                                      shakeTime) )<100 order by ABS(
+                                                      shakeTime) )<3 order by ABS(
                                                       TIMEDIFF( (select shakeTime from ShakeList
 			              			        where clientAccount='$client_account'),
 				                      shakeTime) ) ASC limit 1 offset 0)");
 
                 if($res){
-			var_dump($res[0][userAccount] );
-			print_r($res);/*
-			while($row = mysql_fetch_assoc($res)){
-				$rows[] = $row;
-			print_r($row);
-			}*/
+			print_r($res);
+			$sendMessage = '{"re_type":"3","re_message":[';
+                	foreach($res as $key => $k){
+                        	$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
+							     "\"re_photo\":\"$k[userPhoto]\",".
+						             "\"re_gender\":\"$k[gender]\",".
+							     "\"re_name\":\"$k[userName]\"},";
+                	}
+                	$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
+                	$re_message = $re_message."]}";
+                	echo "$re_message \n";
 		}else{
-		     echo "我乐个趣";
+		     $re_message = '{"re_type":"3","re_message":"false"}';
 		}
-
-		$sendMessage = '{"re_type":"3","re_message":[';
-		foreach($res as $key => $k){
-			echo $k[userAccount]."---".$k[gender]."---".$k[userName];
-		/*	$sendMessage = $sendMessage.'{"re_account":"'$k['userAccount']'",
-						      "re_photo":"'$k['userPhoto']'",
-                                                      "re_gender":"'$k['gender']'",
-                                                      "re_name":"'$k['userName']'"},';
-		*/}
-		$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
-		$re_message = $re_message.']}';
 		Gateway::sendToCurrentClient($re_message);
+		break;
+	   case '4':
+//		$client_account = $message_data['acount'];
+//		$db->query("");
         }
    }
    

@@ -20,8 +20,8 @@ class Event
     * @param string $message
     */
    private static $db;
-   private static $client_account;
-   private static $client_pass;
+   private $client_account;
+   private $client_pass;
 
    public static function onMessage($client_id, $message)
    {
@@ -38,9 +38,9 @@ class Event
         switch($message_data['type'])
         {   // Login   
 	    case '0':
-		echo "成功";
 		$client_account = $message_data['account'];
 		$client_pass = $message_data['password']; 
+		echo "$client_account\n";
 
                 if($client_pass == $db->single("select password from UserInf
                                                 where userAccount = '$client_account' ")){
@@ -74,7 +74,9 @@ class Event
 	        return Gateway::sendToClient($reClientId,$message_data['message']);
 	    // Shake
 	    case '3':
-	    //	$client_account = $message_data['account'];
+		Global $client_account;
+	    	$client_account = $message_data['account'];
+		echo "$client_account\n";
 		$db->query("update ShakeList set shakeTime = SYSDATE() 
 		            where clientAccount = '$client_account' ");
 		$res = $db->query("select userAccount,userPhoto,gender,userName
@@ -82,7 +84,7 @@ class Event
                                    from ShakeList where clientAccount<>'$client_account' 
                                    and ABS(TIMEDIFF( (select shakeTime from ShakeList
                                                       where clientAccount='$client_account'),
-                                                      shakeTime) )<3 order by ABS(
+                                                      shakeTime) )<30 order by ABS(
                                                       TIMEDIFF( (select shakeTime from ShakeList
 			              			        where clientAccount='$client_account'),
 				                      shakeTime) ) ASC limit 1 offset 0)");
@@ -117,11 +119,13 @@ class Event
    public static function onClose($client_id)
    {
        // 广播 xxx 退出了
+       $db = Db::instance('DecipherDb');
        global $client_account;
        global $db;
-       
+       echo "$client_id \n";
+       $re_client_id = $client_id + 1;
+       $client_account = $db->single("select clientName from IdName where clientId = '$re_client_id'");
        echo $client_account;
-       $db = Db::instance('DecipherDb');
        $row_cout = $db->query("update IdName set clientId = -1
                                where clientName = '$client_account' ");	
        GateWay::sendToAll(json_encode(array('type'=>'closed', 'id'=>$client_id)));

@@ -20,8 +20,6 @@ class Event
     * @param string $message
     */
    private static $db;
-   private $client_account;
-   private $client_pass;
 
    public static function onMessage($client_id, $message)
    {
@@ -32,11 +30,10 @@ class Event
             return ;
         }
 	global $db;
-	global $client_account;
-	global $client_pass;
         $db = Db::instance('DecipherDb');
-        switch($message_data['type'])
-        {   // Login   
+
+        switch($message_data['type']){ 
+            // Login   
 	    case '0':
 		$client_account = $message_data['account'];
 		$client_pass = $message_data['password']; 
@@ -46,51 +43,63 @@ class Event
                                                 where userAccount = '$client_account' ")){
                         echo "登录";
 			$re_client_id = $client_id + 1;
-                 	$row_cout = $db->query("update IdName set clientId = '$re_client_id'
-                                                where clientName = '$client_account' ");
-			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"true"}');
+                 	$row_cout = $db->query("update IdAccount set reId = '$re_client_id'
+                                                where reAccount = '$client_account' ");
+			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"true"}+++++');
 		}
                 else{
-			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"false"}');
+			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"false"}+++++');
 			echo "失败";
 		}
 	    break;
-/*          // Register
-            case '1':
-		
-		$insert_User = $db->query("insert into UserInf
-                              (password,userName,birth,gender,avatarId,isOnline,gameInf)
-                              values ('','','','','','','')");
-		$insert_Id = $db->query("insert into IdName
-					 (clientId,clientName) values (-1,'')");
-		$insert_Shake = $db->query("insert into ShakeList 
-		                          (clientAccount,shakeTime) values ('$',0)");
-*/
+
+           // Register
+           case '1':	
+		if(!$db->single("select userAccount from UserInf
+				 where userAccount = '$message_data[account]'")){
+			$insert_User = $db->query("insert into UserInf (userAccount, password,
+						   userName, userPhoto, userPhone, userEmail,
+                                                   birth, gender, signupTime) values (
+						'$message_data[account]','$message_data[password]',
+					        '$message_data[name]','$message_data[photo]',
+						'$message_data[phone]','$message_data[email]',
+						'$message_data[birth]','$message_data[sex]',
+						 SYSDATE() ) ");
+			$insert_Id = $db->query("insert into IdAccount (reId, reAccount)
+						 values (-1,'$message_data[account]')");
+			$insert_Shake = $db->query("insert into ShakeList (shakeAccount,shakeTime)
+				                    values ('$message_data[account]',0)");
+			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"true"}+++++');
+		}
+		else{
+			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"false"}+++++');
+		}
+	    break;
+
             // Chat
             case '2':
-		$reClientName = $message_data['re_account'];
-		$reClientId = $db->single("select clientId from IdName
-                                           where clientName = '$reClientName' ");
-	        return Gateway::sendToClient($reClientId,$message_data['message']);
+/*		$reClientName = $message_data['re_account'];
+		$reClientId = $db->single("select clientId from IdAccount
+                                           where reAccount = '$message_data[re_account]' ");
+	        return Gateway::sendToClient($reClientId,$message_data['message']);  */
+
 	    // Shake
 	    case '3':
-		Global $client_account;
-	    	$client_account = $message_data['account'];
-		echo "$client_account\n";
 		$db->query("update ShakeList set shakeTime = SYSDATE() 
-		            where clientAccount = '$client_account' ");
+		            where shakeAccount = '$message_data[account]' ");
+		sleep(4);
 		$res = $db->query("select userAccount,userPhoto,gender,userName
-				   from UserInf where userAccount = (select clientAccount
-                                   from ShakeList where clientAccount<>'$client_account' 
+				   from UserInf where userAccount = (select shakeAccount
+                                   from ShakeList where shakeAccount <> '$message_data[account]' 
                                    and ABS(TIMEDIFF( (select shakeTime from ShakeList
-                                                      where clientAccount='$client_account'),
+                                                      where shakeAccount = '$message_data[account]'),
                                                       shakeTime) )<30 order by ABS(
                                                       TIMEDIFF( (select shakeTime from ShakeList
-			              			        where clientAccount='$client_account'),
+			              			      where shakeAccount='$message_data[account]'),
 				                      shakeTime) ) ASC limit 1 offset 0)");
 
                 if($res){
-			print_r($res);
+		//	print_r($res);
 			$sendMessage = '{"re_type":"3","re_message":[';
                 	foreach($res as $key => $k){
                         	$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
@@ -99,15 +108,17 @@ class Event
 							     "\"re_name\":\"$k[userName]\"},";
                 	}
                 	$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
-                	$re_message = $re_message."]}";
+                	$re_message = $re_message."]}+++++";
                 	echo "$re_message \n";
 		}else{
-		     $re_message = '{"re_type":"3","re_message":"false"}';
+		     $re_message = '{"re_type":"3","re_message":"false"}+++++';
 		}
 		Gateway::sendToCurrentClient($re_message);
-		break;
+	   break;
+
+	   //FriendList
 	   case '4':
-//		$client_account = $message_data['acount'];
+//		$client_account = $message_data['account'];
 //		$db->query("");
         }
    }
@@ -119,15 +130,13 @@ class Event
    public static function onClose($client_id)
    {
        // 广播 xxx 退出了
-       $db = Db::instance('DecipherDb');
-       global $client_account;
        global $db;
+       $db = Db::instance('DecipherDb');
+
        echo "$client_id \n";
        $re_client_id = $client_id + 1;
-       $client_account = $db->single("select clientName from IdName where clientId = '$re_client_id'");
-       echo $client_account;
-       $row_cout = $db->query("update IdName set clientId = -1
-                               where clientName = '$client_account' ");	
-       GateWay::sendToAll(json_encode(array('type'=>'closed', 'id'=>$client_id)));
+       $row_cout = $db->query("update IdAccount set reId = -1
+                               where reId = '$re_client_id' ");	
+       GateWay::sendToAll("{\"re_type\":\"close\",\"id\":\"'$client_id'\"}+++++");
    }
 }

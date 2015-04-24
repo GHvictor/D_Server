@@ -67,8 +67,10 @@ class Event
 						 SYSDATE() ) ");
 			$insert_Id = $db->query("insert into IdAccount (reId, reAccount)
 						 values (-1,'$message_data[account]')");
-			$insert_Shake = $db->query("insert into ShakeList (shakeAccount,shakeTime)
+	                $insert_Shake = $db->query("insert into ShakeList (shakeAccount,shakeTime)
 				                    values ('$message_data[account]',0)");
+			$insert_GameOne = $db->query("insert into GameOne (gameAccount) values
+						     ('$message_data[account]')");
 			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"true"}+++++');
 		}
 		else{
@@ -87,7 +89,7 @@ class Event
 	    case '3':
 		$db->query("update ShakeList set shakeTime = SYSDATE() 
 		            where shakeAccount = '$message_data[account]' ");
-		sleep(4);
+         	sleep(4);
 		$res = $db->query("select userAccount,userPhoto,gender,userName
 				   from UserInf where userAccount = (select shakeAccount
                                    from ShakeList where shakeAccount <> '$message_data[account]' 
@@ -120,6 +122,28 @@ class Event
 	   case '4':
 //		$client_account = $message_data['account'];
 //		$db->query("");
+
+           //GameOneRecieve
+	   case '5':
+		$res = $db->query("select rock,scissors,paper from GameOne where
+		        	   gameAccount = '$message_data[account]'");
+		if($res){
+			$sendMessage = "{\"re_type\":\"5\",
+					 \"re_rock\":\"'$res[rock]'\",
+					 \"re_scissors\":\"'$res[scissors]'\",
+					 \"re_paper\":\"'$res[scissors]'\"}+++++";
+		}else{
+		     $sendMessage = '{"re_type":"5","re_message":"false"}+++++';
+		}
+		Gateway::sendToCurrentClient($sendMessage);
+	   break;
+
+	   //GameOneSend
+	   case '6':
+		$db->query("update GameOne set rock = '$message_data[rock]', scissors = '$message_data[scissors]',
+			    paper = '$message[paper]' where gameAccount = '$message_data[account]'");
+	   break;
+		
         }
    }
    

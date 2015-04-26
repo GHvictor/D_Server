@@ -51,7 +51,7 @@ class Event
 			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"false"}+++++');
 			echo "失败";
 		}
-	    break;
+	    	break;
 
            // Register
            case '1':	
@@ -76,7 +76,7 @@ class Event
 		else{
 			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"false"}+++++');
 		}
-	    break;
+	    	break;
 
             // Chat
             case '2':
@@ -116,19 +116,41 @@ class Event
 		     $re_message = '{"re_type":"3","re_message":"false"}+++++';
 		}
 		Gateway::sendToCurrentClient($re_message);
-	   break;
+	   	break;
 
 	   //FriendList
 	   case '4':
-//		$client_account = $message_data['account'];
-//		$db->query("");
+		$res = $db->query("select userAccount,userPhoto,gender,userName
+                                   from UserInf A,FriendList B where A.userAccount = B.friAccount
+                                   and B.friUser = '$message_data[account]' ");
+                if($res){
+                //      print_r($res);
+			$sendMessage = '"re_type":"4","re_message":[';
+			foreach($res as $key => $k){
+				$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
+                                                             "\"re_photo\":\"$k[userPhoto]\",".
+                                                             "\"re_gender\":\"$k[gender]\",".
+                                                             "\"re_name\":\"$k[userName]\"},";
+			}
+			$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
+			$re_message = $re_message."]}+++++";
+			echo "$re_message \n";
+                }else{
+			$re_message = '{"re_type":"4","re_message":"false"}+++++';
+                        echo "并没有 \n";
+                }
+		Gateway::sendToCurrentClient($re_message);
+		break;
 
            //GameOneRecieve
 	   case '5':
 		$res = $db->query("select rock,scissors,paper from GameOne where
 		        	   gameAccount = '$message_data[account]'");
-		if($res){
+		$res_grade =  $db->single("select grade from GameOne where
+					   gameAccount = '$message_data[friend]'");
+		if($res && $res_grade){
 			$sendMessage = "{\"re_type\":\"5\",
+				         \"re_grade\":\"'$res_grade'\",
 					 \"re_rock\":\"'$res[rock]'\",
 					 \"re_scissors\":\"'$res[scissors]'\",
 					 \"re_paper\":\"'$res[scissors]'\"}+++++";
@@ -136,13 +158,14 @@ class Event
 		     $sendMessage = '{"re_type":"5","re_message":"false"}+++++';
 		}
 		Gateway::sendToCurrentClient($sendMessage);
-	   break;
+	   	break;
 
 	   //GameOneSend
 	   case '6':
-		$db->query("update GameOne set rock = '$message_data[rock]', scissors = '$message_data[scissors]',
-			    paper = '$message[paper]' where gameAccount = '$message_data[account]'");
-	   break;
+		$db->query("update GameOne set rock = '$message_data[rock]',
+                            scissors = '$message_data[scissors]', paper = '$message[paper]'
+                            where gameAccount = '$message_data[account]'");
+	   	break;
 		
         }
    }

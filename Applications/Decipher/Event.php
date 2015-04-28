@@ -144,16 +144,19 @@ class Event
 
            //GameOneRecieve
 	   case '5':
-		$res = $db->query("select rock,scissors,paper from GameOne where
+		$res = $db->row("select rock,scissors,paper from GameOne where
 		        	   gameAccount = '$message_data[account]'");
 		$res_grade =  $db->single("select grade from GameOne where
 					   gameAccount = '$message_data[friend]'");
 		if($res && $res_grade){
-			$sendMessage = "{\"re_type\":\"5\",
-				         \"re_grade\":\"'$res_grade'\",
-					 \"re_rock\":\"'$res[rock]'\",
-					 \"re_scissors\":\"'$res[scissors]'\",
-					 \"re_paper\":\"'$res[scissors]'\"}+++++";
+			print_r($res);
+		
+			$sendMessage = "{\"re_type\":\"5\",".
+				        "\"re_grade\":\"$res_grade\",".
+					"\"re_rock\":\"$res[rock]\",".
+					"\"re_scissors\":\"$res[scissors]\",".
+					"\"re_paper\":\"$res[scissors]\"}+++++";
+			echo "$sendMessage \n";
 		}else{
 		     $sendMessage = '{"re_type":"5","re_message":"false"}+++++';
 		}
@@ -163,9 +166,15 @@ class Event
 	   //GameOneSend
 	   case '6':
 		$db->query("update GameOne set rock = '$message_data[rock]',
-                            scissors = '$message_data[scissors]', paper = '$message[paper]'
+                            scissors = '$message_data[scissors]', 
+			    paper = '$message_data[paper]'
                             where gameAccount = '$message_data[account]'");
 	   	break;
+
+	   //GameOneGrade
+	   case '7':
+		$db->query("update GameOne set grade = '$message_data[grade]'
+			    where gameAccount = '$message_data[account]'");
 		
         }
    }

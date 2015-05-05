@@ -80,10 +80,13 @@ class Event
 
             // Chat
             case '2':
-/*		$reClientName = $message_data['re_account'];
+		$reClientName = $message_data['re_account'];
 		$reClientId = $db->single("select clientId from IdAccount
                                            where reAccount = '$message_data[re_account]' ");
-	        return Gateway::sendToClient($reClientId,$message_data['message']);  */
+		$sendMessage = "{\"re_type\":\"2\",\"re_message\":\"$message_data[message]\",".
+			        "\"re_sender\":\"$message_data[account]\",".
+				"\"re_date\":\"$message_data[date]\"}+++++";
+	        return Gateway::sendToClient($reClientId, $sendMessage); 
 
 	    // Shake
 	    case '3':
@@ -125,7 +128,7 @@ class Event
                                    and B.friUser = '$message_data[account]' ");
                 if($res){
                 //      print_r($res);
-			$sendMessage = '"re_type":"4","re_message":[';
+			$sendMessage = '{"re_type":"4","re_message":[';
 			foreach($res as $key => $k){
 				$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
                                                              "\"re_photo\":\"$k[userPhoto]\",".
@@ -175,7 +178,35 @@ class Event
 	   case '7':
 		$db->query("update GameOne set grade = '$message_data[grade]'
 			    where gameAccount = '$message_data[account]'");
-		
+           	break;
+           //AddFriend
+           case '8':
+                $db->query("insert into FriendList (friUser, friAccount)
+                            values ('$message_data[account]',
+                                    '$message_data[friend]')");
+		$res = $db->row("select userAccount, userName, userPhoto, gender
+				 from UserInf where userAccount = '$message[account]'");
+		$reClientId = $db->single("select reId from IdAccount
+					   where reAccount = '$message_data[friend]'");
+		if($reClientId != -1){
+	        	Gateway::sendToClient($reClientId,"{\"re_type\":\"8\",".
+                                                    "\"re_account\":\"$res[userAccount]\",".
+                                                    "\"re_photo\":\"$res[userPhoto]\",".
+                                                    "\"re_gender\":\"$res[gender]\",".
+                                                    "\"re_name\":\"$res[userName]\"}+++++");
+		}else{
+			Gateway::sendToCurrentClient('{"re_type":"8","re_message":"false"}+++++');
+		}
+		break;
+/*
+	    case '9':
+		break;
+
+	    case '10':
+		$db->query("update NearPeople set longtitude,latitude where nearAccount = ");
+		$db->query("select userAccount,userName, from  where  select");
+		break;
+*/
         }
    }
    

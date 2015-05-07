@@ -183,7 +183,7 @@ class Gateway extends Worker
         // 保存该连接的内部gateway通讯地址
         $address = $this->lanIp.':'.$this->lanPort;
         $this->storeClientAddress($connection->globalClientId, $address);
-        
+        echo "$address 原始\n"; 
         // 如果用户有自定义onConnect回调，则执行
         if($this->_onConnect)
         {

@@ -41,9 +41,9 @@ class Event
 
                 if($client_pass == $db->single("select password from UserInf
                                                 where userAccount = '$client_account' ")){
-                        echo "登录";
-			$re_client_id = $client_id + 1;
-                 	$row_cout = $db->query("update IdAccount set reId = '$re_client_id'
+                        echo "登录 $client_id\n";
+			//$re_client_id = $client_id + 1;
+                 	$row_cout = $db->query("update IdAccount set reId = '$client_id'
                                                 where reAccount = '$client_account' ");
 			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"true"}+++++');
 		}
@@ -52,8 +52,7 @@ class Event
 			echo "失败";
 		}
 	    	break;
-
-           // Register
+            // Register
            case '1':	
 		if(!$db->single("select userAccount from UserInf
 				 where userAccount = '$message_data[account]'")){
@@ -81,12 +80,18 @@ class Event
             // Chat
             case '2':
 		$reClientName = $message_data['re_account'];
-		$reClientId = $db->single("select clientId from IdAccount
+		$reClientId = $db->single("select reId from IdAccount
                                            where reAccount = '$message_data[re_account]' ");
-		$sendMessage = "{\"re_type\":\"2\",\"re_message\":\"$message_data[message]\",".
-			        "\"re_sender\":\"$message_data[account]\",".
-				"\"re_date\":\"$message_data[date]\"}+++++";
-	        return Gateway::sendToClient($reClientId, $sendMessage); 
+		echo "$reClientId 发给谁\n";
+		if($reClientId != -1){
+			$sendMessage = "{\"re_type\":\"2\",\"re_message\":\"$message_data[message]\",".
+				       "\"re_sender\":\"$message_data[account]\",".
+				       "\"re_date\":\"$message_data[date]\"}+++++";
+	        	Gateway::sendToClient($reClientId, $sendMessage);
+		}else{
+			//$db->query("");
+		}
+		break;
 
 	    // Shake
 	    case '3':
@@ -179,7 +184,8 @@ class Event
 		$db->query("update GameOne set grade = '$message_data[grade]'
 			    where gameAccount = '$message_data[account]'");
            	break;
-           //AddFriend
+           
+	   //AddFriend
            case '8':
                 $db->query("insert into FriendList (friUser, friAccount)
                             values ('$message_data[account]',
@@ -198,12 +204,28 @@ class Event
 			Gateway::sendToCurrentClient('{"re_type":"8","re_message":"false"}+++++');
 		}
 		break;
-/*
-	    case '9':
-		break;
 
+	    //SendVoice
+	    case '9':
+		$reClientName = $message_data['re_account'];
+                $reClientId = $db->single("select clientId from IdAccount
+                                           where reAccount = '$message_data[re_account]' ");
+		if($reClientId != -1){
+                	$sendMessage = "{\"re_type\":\"9\",\"re_message\":\"$message_data[message]\",".
+                        	       "\"re_sender\":\"$message_data[account]\",".
+                               	       "\"re_date\":\"$message_data[date]\"".
+				       "\"re_time\":\"$message_data[time]\"}+++++";
+			Gateway::sendToClient($reClientId, $sendMessage);
+		}else{
+			
+		}
+		break;
+/*
+            //NearBy
 	    case '10':
-		$db->query("update NearPeople set longtitude,latitude where nearAccount = ");
+		$db->query("update NearPeople set longtitude = '$message_data[longtitude]',
+			    latitude = '$message_data[latitude]' where 
+			    nearAccount = '$message_data[account]'");
 		$db->query("select userAccount,userName, from  where  select");
 		break;
 */
@@ -221,9 +243,9 @@ class Event
        $db = Db::instance('DecipherDb');
 
        echo "$client_id \n";
-       $re_client_id = $client_id + 1;
+       //$re_client_id = $client_id + 1;
        $row_cout = $db->query("update IdAccount set reId = -1
-                               where reId = '$re_client_id' ");	
+                               where reId = '$client_id' ");	
        GateWay::sendToAll("{\"re_type\":\"close\",\"id\":\"'$client_id'\"}+++++");
    }
 }

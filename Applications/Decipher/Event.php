@@ -52,7 +52,8 @@ class Event
 			echo "失败";
 		}
 	    	break;
-            // Register
+
+           // Register
            case '1':	
 		if(!$db->single("select userAccount from UserInf
 				 where userAccount = '$message_data[account]'")){
@@ -133,6 +134,7 @@ class Event
                                    and B.friUser = '$message_data[account]' ");
                 if($res){
                 //      print_r($res);
+		/*
 			$sendMessage = '{"re_type":"4","re_message":[';
 			foreach($res as $key => $k){
 				$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
@@ -143,11 +145,22 @@ class Event
 			$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
 			$re_message = $re_message."]}+++++";
 			echo "$re_message \n";
+		*/
+			foreach($res as $key => $k){
+				$sendMessage = "{\"re_type\":\"4\",\"re_account\":\"$k[userAccount]\",".
+						"\"re_photo\":\"$k[userPhoto]\",".
+						"\"re_gender\":\"$k[gender]\",".
+						"\"re_name\":\"$k[userName]\",".
+						"\"re_message\":\"true\"}+++++";
+				Gateway::sendToCurrentClient($sendMessage);
+				$sendMessage = "";
+			}
+			Gateway::sendToCurrentClient('{"re_type":"4","re_message":"finish"}+++++');
                 }else{
 			$re_message = '{"re_type":"4","re_message":"false"}+++++';
-                        echo "并没有 \n";
-                }
-		Gateway::sendToCurrentClient($re_message);
+                        echo "并没有 \n";	
+			Gateway::sendToCurrentClient($re_message);
+		}
 		break;
 
            //GameOneRecieve

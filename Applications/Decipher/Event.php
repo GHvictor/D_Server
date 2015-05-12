@@ -45,7 +45,18 @@ class Event
 			//$re_client_id = $client_id + 1;
                  	$row_cout = $db->query("update IdAccount set reId = '$client_id'
                                                 where reAccount = '$client_account' ");
-			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"true"}+++++');
+			$res = $db->row("select userName,smallPhoto,gender,userPhone,userEmail,birth
+					 from UserInf where userAccount = '$client_account'");
+			$sendMessage = "{\"re_type\":\"0\",".
+					"\"re_message\":\"true\",".
+                                        "\"re_name\":\"$res[userName]\",".
+                                        "\"re_photo\":\"$res[smallPhoto]\",".
+                                        "\"re_gender\":\"$res[gender]\",".
+                                        "\"re_phone\":\"$res[userPhone]\",".
+                                        "\"re_email\":\"$res[userEmail]\",".
+					"\"re_birth\":\"$res[birth]\"}+++++";
+			Gateway::sendToCurrentClient($sendMessage);
+		//	Gateway::sendToCurrentClient('{"re_type":"0","re_message":"true"}+++++');
 		}
                 else{
 			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"false"}+++++');
@@ -59,12 +70,12 @@ class Event
 				 where userAccount = '$message_data[account]'")){
 			$insert_User = $db->query("insert into UserInf (userAccount, password,
 						   userName, userPhoto, userPhone, userEmail,
-                                                   birth, gender, signupTime) values (
+                                                   birth, gender, signupTime, smallPhoto) values (
 						'$message_data[account]','$message_data[password]',
 					        '$message_data[name]','$message_data[photo]',
 						'$message_data[phone]','$message_data[email]',
 						'$message_data[birth]','$message_data[sex]',
-						 SYSDATE() ) ");
+						 SYSDATE(), '$message_data[sphoto]' ) ");
 			$insert_Id = $db->query("insert into IdAccount (reId, reAccount)
 						 values (-1,'$message_data[account]')");
 	                $insert_Shake = $db->query("insert into ShakeList (shakeAccount,shakeTime)
@@ -129,7 +140,7 @@ class Event
 
 	   //FriendList
 	   case '4':
-		$res = $db->query("select userAccount,userPhoto,gender,userName
+		$res = $db->query("select userAccount,smallPhoto,gender,userName
                                    from UserInf A,FriendList B where A.userAccount = B.friAccount
                                    and B.friUser = '$message_data[account]' ");
                 if($res){
@@ -148,7 +159,7 @@ class Event
 		*/
 			foreach($res as $key => $k){
 				$sendMessage = "{\"re_type\":\"4\",\"re_account\":\"$k[userAccount]\",".
-						"\"re_photo\":\"$k[userPhoto]\",".
+						"\"re_photo\":\"$k[smallPhoto]\",".
 						"\"re_gender\":\"$k[gender]\",".
 						"\"re_name\":\"$k[userName]\",".
 						"\"re_message\":\"true\"}+++++";
@@ -167,13 +178,14 @@ class Event
 	   case '5':
 		$res = $db->row("select rock,scissors,paper from GameOne where
 		        	   gameAccount = '$message_data[account]'");
-		$res_grade =  $db->single("select grade from GameOne where
+		$res_grade =  $db->row("select grade,sum from GameOne where
 					   gameAccount = '$message_data[friend]'");
 		if($res && $res_grade){
 			print_r($res);
 		
 			$sendMessage = "{\"re_type\":\"5\",".
-				        "\"re_grade\":\"$res_grade\",".
+				        "\"re_grade\":\"$res_grade[grade]\",".
+					"\"re_sum\":\"$res_grade[sum]\",".
 					"\"re_rock\":\"$res[rock]\",".
 					"\"re_scissors\":\"$res[scissors]\",".
 					"\"re_paper\":\"$res[scissors]\"}+++++";
@@ -194,8 +206,8 @@ class Event
 
 	   //GameOneGrade
 	   case '7':
-		$db->query("update GameOne set grade = '$message_data[grade]'
-			    where gameAccount = '$message_data[account]'");
+		$db->query("update GameOne set grade = '$message_data[grade]',
+			    sum = '$message_data[sum]' where gameAccount = '$message_data[account]'");
            	break;
            
 	   //AddFriend

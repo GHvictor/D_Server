@@ -29,6 +29,12 @@ $gateway_text->count = 4;
 $gateway_text->lanIp = '127.0.0.1';
 // gateway内部通讯起始端口，起始端口不要重复
 $gateway_text->startPort = 2500;
+// 心跳检测
+/*
+$gateway_text->pingInterval = 10;
+$gateway_text->pingNotResponseLimit = 10;
+$gateway_text->pingData = '{"type":"ping"}';
+*/
 
 /* 
 // 当客户端连接上来时，设置连接的onWebSocketConnect，即在websocket握手时的回调

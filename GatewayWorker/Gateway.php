@@ -174,6 +174,8 @@ class Gateway extends Worker
             'client_port'=>$connection->getRemotePort(),
             'client_id'=>$connection->globalClientId,
         );
+	print_r($connection->gatewayHeader['client_ip']);
+	print_r($connection->gatewayHeader['client_port']);
         // 连接的session
         $connection->session = '';
         // 该连接的心跳参数

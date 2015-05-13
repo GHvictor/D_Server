@@ -45,7 +45,7 @@ class Event
 			//$re_client_id = $client_id + 1;
                  	$row_cout = $db->query("update IdAccount set reId = '$client_id'
                                                 where reAccount = '$client_account' ");
-			$res = $db->row("select userName,smallPhoto,gender,userPhone,userEmail,birth
+			$res = $db->row("select userName, smallPhoto, gender, userPhone, userEmail, birth
 					 from UserInf where userAccount = '$client_account'");
 			$sendMessage = "{\"re_type\":\"0\",".
 					"\"re_message\":\"true\",".
@@ -78,8 +78,8 @@ class Event
 						 SYSDATE(), '$message_data[sphoto]' ) ");
 			$insert_Id = $db->query("insert into IdAccount (reId, reAccount)
 						 values (-1,'$message_data[account]')");
-	                $insert_Shake = $db->query("insert into ShakeList (shakeAccount,shakeTime)
-				                    values ('$message_data[account]',0)");
+	                $insert_Shake = $db->query("insert into ShakeList (shakeAccount, shakeTime)
+				                    values ('$message_data[account]', 0)");
 			$insert_GameOne = $db->query("insert into GameOne (gameAccount) values
 						     ('$message_data[account]')");
 			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"true"}+++++');
@@ -110,7 +110,7 @@ class Event
 		$db->query("update ShakeList set shakeTime = SYSDATE() 
 		            where shakeAccount = '$message_data[account]' ");
          	sleep(4);
-		$res = $db->query("select userAccount,userPhoto,gender,userName
+		$res = $db->query("select userAccount, smallPhoto, gender, userName
 				   from UserInf where userAccount = (select shakeAccount
                                    from ShakeList where shakeAccount <> '$message_data[account]' 
                                    and ABS(TIMEDIFF( (select shakeTime from ShakeList
@@ -125,7 +125,7 @@ class Event
 			$sendMessage = '{"re_type":"3","re_message":[';
                 	foreach($res as $key => $k){
                         	$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
-							     "\"re_photo\":\"$k[userPhoto]\",".
+							     "\"re_photo\":\"$k[smallPhoto]\",".
 						             "\"re_gender\":\"$k[gender]\",".
 							     "\"re_name\":\"$k[userName]\"},";
                 	}
@@ -140,7 +140,7 @@ class Event
 
 	   //FriendList
 	   case '4':
-		$res = $db->query("select userAccount,smallPhoto,gender,userName
+		$res = $db->query("select userAccount, smallPhoto, gender, userName
                                    from UserInf A,FriendList B where A.userAccount = B.friAccount
                                    and B.friUser = '$message_data[account]' ");
                 if($res){
@@ -149,7 +149,7 @@ class Event
 			$sendMessage = '{"re_type":"4","re_message":[';
 			foreach($res as $key => $k){
 				$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
-                                                             "\"re_photo\":\"$k[userPhoto]\",".
+                                                             "\"re_photo\":\"$k[smallPhoto]\",".
                                                              "\"re_gender\":\"$k[gender]\",".
                                                              "\"re_name\":\"$k[userName]\"},";
 			}
@@ -176,9 +176,9 @@ class Event
 
            //GameOneRecieve
 	   case '5':
-		$res = $db->row("select rock,scissors,paper from GameOne where
+		$res = $db->row("select rock, scissors, paper from GameOne where
 		        	   gameAccount = '$message_data[account]'");
-		$res_grade =  $db->row("select grade,sum from GameOne where
+		$res_grade =  $db->row("select grade, sum from GameOne where
 					   gameAccount = '$message_data[friend]'");
 		if($res && $res_grade){
 			print_r($res);
@@ -215,14 +215,14 @@ class Event
                 $db->query("insert into FriendList (friUser, friAccount)
                             values ('$message_data[account]',
                                     '$message_data[friend]')");
-		$res = $db->row("select userAccount, userName, userPhoto, gender
+		$res = $db->row("select userAccount, userName, smallPhoto, gender
 				 from UserInf where userAccount = '$message[account]'");
 		$reClientId = $db->single("select reId from IdAccount
 					   where reAccount = '$message_data[friend]'");
 		if($reClientId != -1){
 	        	Gateway::sendToClient($reClientId,"{\"re_type\":\"8\",".
                                                     "\"re_account\":\"$res[userAccount]\",".
-                                                    "\"re_photo\":\"$res[userPhoto]\",".
+                                                    "\"re_photo\":\"$res[smallPhoto]\",".
                                                     "\"re_gender\":\"$res[gender]\",".
                                                     "\"re_name\":\"$res[userName]\"}+++++");
 		}else{
@@ -245,15 +245,42 @@ class Event
 			
 		}
 		break;
-/*
+
             //NearBy
 	    case '10':
 		$db->query("update NearPeople set longtitude = '$message_data[longtitude]',
 			    latitude = '$message_data[latitude]' where 
 			    nearAccount = '$message_data[account]'");
-		$db->query("select userAccount,userName, from  where  select");
+		$res = $db->query("SELECT userAccount,userName,gender,smallPhoto,longtitude,latitude,
+			  (6378.138*2*ASIN(SQRT(POW(SIN(($message_data[latitude]*PI()/180-latitude*PI()/180)/2),2) +
+			  COS($message_data[latitude]*PI()/180)*COS(latitude*PI()/180)*
+			  POW(SIN(($message_data[longtitude]*PI()/180-longtitude*PI()/180)/2),2)))*1000) as distance
+			  from UserInf A,NearPeople B where A.userAccount=B.nearAccount and userAccount in(
+			  select nearAccount from NearPeople where(6378.138*2*ASIN(SQRT(POW(
+		          SIN(($message_data[latitude]*PI()/180-latitude*PI()/180)/2),2) + 
+			  COS($message_data[latitude]*PI()/180)*COS(latitude*PI()/180)*
+			  POW(SIN(($message_data[longtitude]*PI()/180-longtitude*PI()/180)/2),2)))*1000) < 1);");
+	        print_r($res);
+		if($res){
+			foreach($res as $key => $k){
+                                $sendMessage = "{\"re_type\":\"10\",\"re_account\":\"$k[userAccount]\",".
+                                                "\"re_photo\":\"$k[smallPhoto]\",".
+                                                "\"re_gender\":\"$k[gender]\",".
+                                                "\"re_name\":\"$k[userName]\",".
+						"\"re_longtitude\":\"$k[longtitude]\"".
+						"\"re_latitude\":\"latitude\"".
+						"\"re_distance\":\"distance\"".
+                                                "\"re_message\":\"true\"}+++++";
+                                Gateway::sendToCurrentClient($sendMessage);
+                                $sendMessage = "";
+                        }
+                        Gateway::sendToCurrentClient('{"re_type":"4","re_message":"finish"}+++++');
+                }else{
+                        $re_message = '{"re_type":"4","re_message":"false"}+++++';
+                        echo "并没有 \n";
+                        Gateway::sendToCurrentClient($re_message);
+                }	
 		break;
-*/
         }
    }
    

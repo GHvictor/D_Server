@@ -175,7 +175,9 @@ class Gateway extends Worker
             'client_id'=>$connection->globalClientId,
         );
 	print_r($connection->gatewayHeader['client_ip']);
+	echo ":";
 	print_r($connection->gatewayHeader['client_port']);
+	echo "\n";
         // 连接的session
         $connection->session = '';
         // 该连接的心跳参数
@@ -388,6 +390,11 @@ class Gateway extends Worker
             case GatewayProtocol::CMD_SEND_TO_ONE:
                 if(isset($this->_clientConnections[$data['client_id']]))
                 {
+		   $test = $this->_clientConnections[$data['client_id']];
+		   print_r($test->gatewayHeader['client_ip']);
+		    echo ":";
+                   print_r($test->gatewayHeader['client_port']);
+		   echo "\n";
                     $this->_clientConnections[$data['client_id']]->send($data['body']);
                 }
                 break;

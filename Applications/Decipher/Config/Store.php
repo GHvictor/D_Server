@@ -26,8 +26,8 @@ class Store
     /* 
      * 如果使用文件存储，默认系统临时目录下
      */
-    public static $storePath = '';
+    public static $storePath = 'workerman';
 }
 
 // 默认系统临时目录下
-Store::$storePath = sys_get_temp_dir().'/workerman-todpole/';
+Store::$storePath = sys_get_temp_dir().'/workerman/';

@@ -60,4 +60,4 @@ $worker = new BusinessWorker();
 
 $worker->name = 'DecipherBusinessWorker';
 
-$worker->count = 4;
+$worker->count = 1;

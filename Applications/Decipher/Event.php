@@ -82,6 +82,8 @@ class Event
 				                    values ('$message_data[account]', 0)");
 			$insert_GameOne = $db->query("insert into GameOne (gameAccount) values
 						     ('$message_data[account]')");
+			$insert_NearPeople = $db->query("insert into NearPeople (nearAccount, longtitude, latitude) 
+							values ('$message_data[account]', 0, 0)");
 			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"true"}+++++');
 		}
 		else{
@@ -233,12 +235,12 @@ class Event
 	    //SendVoice
 	    case '9':
 		$reClientName = $message_data['re_account'];
-                $reClientId = $db->single("select clientId from IdAccount
+                $reClientId = $db->single("select reId from IdAccount
                                            where reAccount = '$message_data[re_account]' ");
 		if($reClientId != -1){
                 	$sendMessage = "{\"re_type\":\"9\",\"re_message\":\"$message_data[message]\",".
                         	       "\"re_sender\":\"$message_data[account]\",".
-                               	       "\"re_date\":\"$message_data[date]\"".
+                               	       "\"re_date\":\"$message_data[date]\",".
 				       "\"re_time\":\"$message_data[time]\"}+++++";
 			Gateway::sendToClient($reClientId, $sendMessage);
 		}else{
@@ -252,14 +254,15 @@ class Event
 			    latitude = '$message_data[latitude]' where 
 			    nearAccount = '$message_data[account]'");
 		$res = $db->query("SELECT userAccount,userName,gender,smallPhoto,longtitude,latitude,
-			  (6378.138*2*ASIN(SQRT(POW(SIN(($message_data[latitude]*PI()/180-latitude*PI()/180)/2),2) +
-			  COS($message_data[latitude]*PI()/180)*COS(latitude*PI()/180)*
-			  POW(SIN(($message_data[longtitude]*PI()/180-longtitude*PI()/180)/2),2)))*1000) as distance
-			  from UserInf A,NearPeople B where A.userAccount=B.nearAccount and userAccount in(
+			  (6378.138*2*ASIN(SQRT(POW(SIN(('$message_data[latitude]' *PI()/180-latitude*PI()/180)/2),2)+
+			  COS('$message_data[latitude]' *PI()/180)*COS(latitude*PI()/180)*
+			  POW(SIN(('$message_data[longtitude]' *PI()/180-longtitude*PI()/180)/2),2)))*1000) as distance
+			  from UserInf A,NearPeople B where A.userAccount=B.nearAccount and
+			  userAccount <> '$message_data[account]' and userAccount in(
 			  select nearAccount from NearPeople where(6378.138*2*ASIN(SQRT(POW(
-		          SIN(($message_data[latitude]*PI()/180-latitude*PI()/180)/2),2) + 
-			  COS($message_data[latitude]*PI()/180)*COS(latitude*PI()/180)*
-			  POW(SIN(($message_data[longtitude]*PI()/180-longtitude*PI()/180)/2),2)))*1000) < 1);");
+		          SIN(('$message_data[latitude]' *PI()/180-latitude*PI()/180)/2),2) + 
+			  COS('$message_data[latitude]' *PI()/180)*COS(latitude*PI()/180)*
+			  POW(SIN(('$message_data[longtitude]' *PI()/180-longtitude*PI()/180)/2),2)))*1000) < 1000)");
 	        print_r($res);
 		if($res){
 			foreach($res as $key => $k){
@@ -267,16 +270,16 @@ class Event
                                                 "\"re_photo\":\"$k[smallPhoto]\",".
                                                 "\"re_gender\":\"$k[gender]\",".
                                                 "\"re_name\":\"$k[userName]\",".
-						"\"re_longtitude\":\"$k[longtitude]\"".
-						"\"re_latitude\":\"latitude\"".
-						"\"re_distance\":\"distance\"".
+						"\"re_longtitude\":\"$k[longtitude]\",".
+						"\"re_latitude\":\"$k[latitude]\",".
+						"\"re_distance\":\"$k[distance]\",".
                                                 "\"re_message\":\"true\"}+++++";
                                 Gateway::sendToCurrentClient($sendMessage);
                                 $sendMessage = "";
                         }
-                        Gateway::sendToCurrentClient('{"re_type":"4","re_message":"finish"}+++++');
+                        Gateway::sendToCurrentClient('{"re_type":"10","re_message":"finish"}+++++');
                 }else{
-                        $re_message = '{"re_type":"4","re_message":"false"}+++++';
+                        $re_message = '{"re_type":"10","re_message":"false"}+++++';
                         echo "并没有 \n";
                         Gateway::sendToCurrentClient($re_message);
                 }	
@@ -298,6 +301,6 @@ class Event
        //$re_client_id = $client_id + 1;
        $row_cout = $db->query("update IdAccount set reId = -1
                                where reId = '$client_id' ");	
-       GateWay::sendToAll("{\"re_type\":\"close\",\"id\":\"'$client_id'\"}+++++");
+  //     GateWay::sendToAll("{\"re_type\":\"close\",\"id\":\"'$client_id'\"}+++++");
    }
 }

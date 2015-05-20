@@ -314,7 +314,30 @@ class Event
 			    and friAccount = '$message_data[delaccount]'");
 		$db->query("delete from FriendList where friUser = '$message_data[delaccount]'
 			    and friAccount = '$message_data[account]'");
-		Gateway::sendToCurrentClient('{"re_type":"13","re_message":"true"}+++++');
+		Gateway::sendToCurrentClient("{\"re_type\":\"13\",".
+					     "\"re_message\":\"$message_data[account]\"}+++++");
+		break;
+
+	    //ShowInf
+	    case '14':
+		$res = $db->row("select userName, userPhone, userEmail, birth, gender
+                                 from UserInf where userAccount = '$message_data[account]'");
+		if($res){
+			$sendMessage = "{\"re_type\":\"14\",".
+                                        "\"re_message\":\"true\",".
+                                        "\"re_name\":\"$res[userName]\",".
+                                        "\"re_gender\":\"$res[gender]\",".
+                                        "\"re_phone\":\"$res[userPhone]\",".
+                                        "\"re_email\":\"$res[userEmail]\",".
+                                        "\"re_birth\":\"$res[birth]\"}+++++";
+                        Gateway::sendToCurrentClient($sendMessage);
+
+		}else{
+			Gateway::sendToCurrentClient('{"re_type":"14","re_message":"false"}+++++');
+                        echo "失败";
+		}
+		break;
+	    default:
 		break;	
         }
    }

@@ -284,6 +284,38 @@ class Event
                         Gateway::sendToCurrentClient($re_message);
                 }	
 		break;
+
+	    //ChangeInf
+	    case '11':
+		$db->query("update UserInf set userName = '$message_data[cname]'
+			    where userAccount = '$message_data[account]'");
+		Gateway::sendToCurrentClient('{"re_type":"11","re_message":"true"}+++++');
+		break;
+
+            //Image
+	    case '12':
+		$reClientName = $message_data['re_account'];
+                $reClientId = $db->single("select reId from IdAccount
+                                           where reAccount = '$message_data[re_account]' ");
+                echo "$reClientId 发给谁\n";
+                if($reClientId != -1){
+                        $sendMessage = "{\"re_type\":\"12\",\"re_message\":\"$message_data[message]\",".
+                                       "\"re_sender\":\"$message_data[account]\",".
+                                       "\"re_date\":\"$message_data[date]\"}+++++";
+                        Gateway::sendToClient($reClientId, $sendMessage);
+                }else{
+                        //$db->query("");
+                }
+                break;
+
+	    //DelFriend	
+	    case '13':
+		$db->query("delete from FriendList where friUser = '$message_data[account]' 
+			    and friAccount = '$message_data[delaccount]'");
+		$db->query("delete from FriendList where friUser = '$message_data[delaccount]'
+			    and friAccount = '$message_data[account]'");
+		Gateway::sendToCurrentClient('{"re_type":"13","re_message":"true"}+++++');
+		break;	
         }
    }
    

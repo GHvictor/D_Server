@@ -40,7 +40,9 @@ class Event
 		echo "$client_account\n";
 
                 if($client_pass == $db->single("select password from UserInf
-                                                where userAccount = '$client_account' ")){
+                                                where userAccount = '$client_account' ") &&
+			-1 == $db->single("select reId from IdAccount where reAccount
+					   = '$client_account' ")){
                         echo "登录 $client_id\n";
 			//$re_client_id = $client_id + 1;
                  	$row_cout = $db->query("update IdAccount set reId = '$client_id'

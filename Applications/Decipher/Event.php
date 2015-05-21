@@ -105,7 +105,9 @@ class Event
 				       "\"re_date\":\"$message_data[date]\"}+++++";
 	        	Gateway::sendToClient($reClientId, $sendMessage);
 		}else{
-			//$db->query("");
+			$db->query("insert into OffMessage (receiver, sender, message, date) values
+				    ('$message_data[re_account]','$message_data[account]',
+				     '$message_data[message]','$message_data[date]')");
 		}
 		break;
 
@@ -216,21 +218,26 @@ class Event
            
 	   //AddFriend
            case '8':
-                $db->query("insert into FriendList (friUser, friAccount)
-                            values ('$message_data[account]',
-                                    '$message_data[friend]')");
-		$res = $db->row("select userAccount, userName, smallPhoto, gender
-				 from UserInf where userAccount = '$message[account]'");
-		$reClientId = $db->single("select reId from IdAccount
-					   where reAccount = '$message_data[friend]'");
-		if($reClientId != -1){
-	        	Gateway::sendToClient($reClientId,"{\"re_type\":\"8\",".
-                                                    "\"re_account\":\"$res[userAccount]\",".
-                                                    "\"re_photo\":\"$res[smallPhoto]\",".
-                                                    "\"re_gender\":\"$res[gender]\",".
-                                                    "\"re_name\":\"$res[userName]\"}+++++");
-		}else{
+		if($message_data[friend] == $db->single("select friAccount from FriendList
+							where friUser = '$messsage_data[account]'")){
 			Gateway::sendToCurrentClient('{"re_type":"8","re_message":"false"}+++++');
+		}else{
+                	$db->query("insert into FriendList (friUser, friAccount)
+                        	    values ('$message_data[account]',
+                                	    '$message_data[friend]')");
+			$res = $db->row("select userAccount, userName, smallPhoto, gender
+					 from UserInf where userAccount = '$message_data[account]'");
+			$reClientId = $db->single("select reId from IdAccount
+						   where reAccount = '$message_data[friend]'");
+			if($reClientId != -1){
+	        		Gateway::sendToClient($reClientId,"{\"re_type\":\"8\",".
+                                	                    "\"re_account\":\"$res[userAccount]\",".
+                                        	            "\"re_photo\":\"$res[smallPhoto]\",".
+                                                	    "\"re_gender\":\"$res[gender]\",".
+                                                    	    "\"re_name\":\"$res[userName]\"}+++++");
+			}else{
+				Gateway::sendToCurrentClient('{"re_type":"8","re_message":"false"}+++++');
+			}
 		}
 		break;
 
@@ -246,7 +253,9 @@ class Event
 				       "\"re_time\":\"$message_data[time]\"}+++++";
 			Gateway::sendToClient($reClientId, $sendMessage);
 		}else{
-			
+			$db->query("insert into OffMessage (receiver, sender, message, date, time) values
+                                    ('$message_data[re_account]','$message_data[account]',
+                                     '$message_data[message]','$message_data[date]','$message_data[time]')");	
 		}
 		break;
 
@@ -306,7 +315,9 @@ class Event
                                        "\"re_date\":\"$message_data[date]\"}+++++";
                         Gateway::sendToClient($reClientId, $sendMessage);
                 }else{
-                        //$db->query("");
+                        $db->query("insert into OffMessage (receiver, sender, message, date) values
+                                    ('$message_data[re_account]','$message_data[account]',
+                                     '$message_data[message]','$message_data[date]')");
                 }
                 break;
 
@@ -316,7 +327,9 @@ class Event
 			    and friAccount = '$message_data[delaccount]'");
 		$db->query("delete from FriendList where friUser = '$message_data[delaccount]'
 			    and friAccount = '$message_data[account]'");
-		Gateway::sendToCurrentClient("{\"re_type\":\"13\",".
+		$reClientId = $db->single("select reId from IdAccount
+                                           where reAccount = '$message_data[delaccount]' ");
+		Gateway::sendToCurrentClient($reClientId,"{\"re_type\":\"13\",".
 					     "\"re_message\":\"$message_data[account]\"}+++++");
 		break;
 

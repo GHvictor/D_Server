@@ -40,7 +40,7 @@ class Event
 		echo "$client_account\n";
 
                 if($client_pass == $db->single("select password from UserInf
-                                                where userAccount = '$client_account' ") &&
+                                                where userAccount = '$client_account' ") ||
 			-1 == $db->single("select reId from IdAccount where reAccount
 					   = '$client_account' ")){
                         echo "登录 $client_id\n";
@@ -83,7 +83,7 @@ class Event
 	                $insert_Shake = $db->query("insert into ShakeList (shakeAccount, shakeTime)
 				                    values ('$message_data[account]', 0)");
 			$insert_GameOne = $db->query("insert into GameOne (gameAccount, grade, sum) values
-						     ('$message_data[account]', 0, 0)");
+						     ('$message_data[account]', 6, 20)");
 			$insert_NearPeople = $db->query("insert into NearPeople (nearAccount, longtitude, latitude) 
 							values ('$message_data[account]', 0, 0)");
 			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"true"}+++++');
@@ -218,10 +218,10 @@ class Event
            
 	   //AddFriend
            case '8':
-//		if($message_data['friend'] == $db->single("select friAccount from FriendList
-//							where friUser = '$message_data[account]'")){
-//			Gateway::sendToCurrentClient('{"re_type":"8","re_message":"false"}+++++');
-//		}else{
+		if($message_data['friend'] == $db->single("select friAccount from FriendList
+	      						  where friUser = '$message_data[account]'")){
+			Gateway::sendToCurrentClient('{"re_type":"8","re_message":"false"}+++++');
+		}else{
                 	$db->query("insert into FriendList (friUser, friAccount)
                         	    values ('$message_data[account]',
                                 	    '$message_data[friend]')");
@@ -234,6 +234,7 @@ class Event
 						   where reAccount = '$message_data[friend]'");
 			if($reClientId != -1){
 	        		Gateway::sendToClient($reClientId,"{\"re_type\":\"8\",".
+							    "\"re_message\":\"true\",".
                                 	                    "\"re_account\":\"$res[userAccount]\",".
                                         	            "\"re_photo\":\"$res[smallPhoto]\",".
                                                 	    "\"re_gender\":\"$res[gender]\",".
@@ -241,7 +242,7 @@ class Event
 			}else{
 				Gateway::sendToCurrentClient('{"re_type":"8","re_message":"false"}+++++');
 			}
-//		}
+		}
 		break;
 
 	    //SendVoice

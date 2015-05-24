@@ -105,9 +105,9 @@ class Event
 				       "\"re_date\":\"$message_data[date]\"}+++++";
 	        	Gateway::sendToClient($reClientId, $sendMessage);
 		}else{
-			$db->query("insert into OffMessage (receiver, sender, message, date) values
+			$db->query("insert into OffMessage (receiver, sender, message, date, type) values
 				    ('$message_data[re_account]','$message_data[account]',
-				     '$message_data[message]','$message_data[date]')");
+				     '$message_data[message]','$message_data[date]', 0)");
 		}
 		break;
 
@@ -257,9 +257,9 @@ class Event
 				       "\"re_time\":\"$message_data[time]\"}+++++";
 			Gateway::sendToClient($reClientId, $sendMessage);
 		}else{
-			$db->query("insert into OffMessage (receiver, sender, message, date, time) values
+			$db->query("insert into OffMessage (receiver, sender, message, date, time, type) values
                                     ('$message_data[re_account]','$message_data[account]',
-                                     '$message_data[message]','$message_data[date]','$message_data[time]')");	
+                                     '$message_data[message]','$message_data[date]','$message_data[time]', 1)");	
 		}
 		break;
 
@@ -319,9 +319,9 @@ class Event
                                        "\"re_date\":\"$message_data[date]\"}+++++";
                         Gateway::sendToClient($reClientId, $sendMessage);
                 }else{
-                        $db->query("insert into OffMessage (receiver, sender, message, date) values
+                        $db->query("insert into OffMessage (receiver, sender, message, date, type) values
                                     ('$message_data[re_account]','$message_data[account]',
-                                     '$message_data[message]','$message_data[date]')");
+                                     '$message_data[message]','$message_data[date]', 2)");
                 }
                 break;
 
@@ -356,6 +356,29 @@ class Event
                         echo "失败";
 		}
 		break;
+	    
+	    //OffMsg
+	    case '15':
+		$res = $db->query("select sender, message, date, time, type from OffMessage 
+				   where receiver = '$message_data[account]' order by date");
+		if($res){
+			foreach($res as $key => $k){
+                                $sendMessage = "{\"re_type\":\"15\",\"re_message\":\"$k[message]\",".
+                                                "\"re_sender\":\"$k[sender]\",".
+						"\"re_time\":\"$k[time]\",".
+						"\"re_msgtype\":\"$k[type]\",".
+                                                "\"re_date\":\"$k[date]\"}+++++";
+                                Gateway::sendToCurrentClient($sendMessage);
+                                $sendMessage = "";
+                        }
+             //         Gateway::sendToCurrentClient('{"re_type":"15","re_message":"finish"}+++++');
+			$db->query("delete from OffMessage where receiver = '$message_data[account]'");
+		}else{
+			Gateway::sendToCurrentClient('{"re_type":"15","re_message":"false"}+++++');
+                        echo "没有";
+		}
+		break;
+
 	    default:
 		break;	
         }

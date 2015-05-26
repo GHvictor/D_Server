@@ -32,10 +32,9 @@ $gateway_text->startPort = 2500;
 // 心跳检测
 /*
 $gateway_text->pingInterval = 10;
-$gateway_text->pingNotResponseLimit = 10;
-$gateway_text->pingData = '{"type":"ping"}';
+$gateway_text->pingNotResponseLimit = 3;
+$gateway_text->pingData = '{"re_type":"404"}+++++';
 */
-
 /* 
 // 当客户端连接上来时，设置连接的onWebSocketConnect，即在websocket握手时的回调
 $gateway->onConnect = function($connection)

@@ -289,9 +289,9 @@ class Event
 				    where userAccount = '$message_data[account]' ");
 		}
 		if($message_data['kind'] == 'photo'){
-			$db->query("update UserInf set userPhoto = '$mesage_data[cphoto]',
+			$db->query("update UserInf set userPhoto = '$message_data[cphoto]',
 				    smallPhoto = '$message_data[csphoto]'
-				    where userAccount = '$message_data[account]'")
+				    where userAccount = '$message_data[account]'");
 		}
 		Gateway::sendToCurrentClient('{"re_type":"11","re_message":"true"}+++++');
 		break;

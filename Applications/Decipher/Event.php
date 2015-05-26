@@ -38,29 +38,30 @@ class Event
 		$client_account = $message_data['account'];
 		$client_pass = $message_data['password']; 
 		echo "$client_account\n";
-
-                if($client_pass == $db->single("select password from UserInf
-                                                where userAccount = '$client_account' ") ||
-			-1 == $db->single("select reId from IdAccount where reAccount
-					   = '$client_account' ")){
-                        echo "登录 $client_id\n";
-			//$re_client_id = $client_id + 1;
-                 	$row_cout = $db->query("update IdAccount set reId = '$client_id'
-                                                where reAccount = '$client_account' ");
-			$res = $db->row("select userName, smallPhoto, gender, userPhone, userEmail, birth
-					 from UserInf where userAccount = '$client_account'");
-			$sendMessage = "{\"re_type\":\"0\",".
-					"\"re_message\":\"true\",".
-                                        "\"re_name\":\"$res[userName]\",".
-                                        "\"re_photo\":\"$res[smallPhoto]\",".
-                                        "\"re_gender\":\"$res[gender]\",".
-                                        "\"re_phone\":\"$res[userPhone]\",".
-                                        "\"re_email\":\"$res[userEmail]\",".
-					"\"re_birth\":\"$res[birth]\"}+++++";
-			Gateway::sendToCurrentClient($sendMessage);
-		//	Gateway::sendToCurrentClient('{"re_type":"0","re_message":"true"}+++++');
-		}
-                else{
+		
+		if($client_pass == $db->single("select password from UserInf
+                                                where userAccount = '$client_account' ")){
+			if(-1 == $db->single("select reId from IdAccount where reAccount
+                                           = '$client_account' ")){
+                        	echo "登录 $client_id\n";
+				//$re_client_id = $client_id + 1;
+                 		$row_cout = $db->query("update IdAccount set reId = '$client_id'
+                                	                where reAccount = '$client_account' ");
+				$res = $db->row("select userName, smallPhoto, gender, userPhone, userEmail, birth
+						 from UserInf where userAccount = '$client_account'");
+				$sendMessage = "{\"re_type\":\"0\",".
+						"\"re_message\":\"true\",".
+                                        	"\"re_name\":\"$res[userName]\",".
+                                       		"\"re_photo\":\"$res[smallPhoto]\",".
+                                        	"\"re_gender\":\"$res[gender]\",".
+                                        	"\"re_phone\":\"$res[userPhone]\",".
+                                        	"\"re_email\":\"$res[userEmail]\",".
+						"\"re_birth\":\"$res[birth]\"}+++++";
+				Gateway::sendToCurrentClient($sendMessage);
+			}else{
+			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"same"}+++++');
+			}
+		}else{
 			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"false"}+++++');
 			echo "失败";
 		}
@@ -86,6 +87,8 @@ class Event
 						     ('$message_data[account]', 6, 20)");
 			$insert_NearPeople = $db->query("insert into NearPeople (nearAccount, longtitude, latitude) 
 							values ('$message_data[account]', 0, 0)");
+			$insert_Invitation = $db->query("insert into InvitationTicket (inviAccount, flag)
+							 values ('$message_data[account]', 0)");
 			Gateway::sendToCurrentClient('{"re_type":"1","re_message":"true"}+++++');
 		}
 		else{
@@ -116,7 +119,7 @@ class Event
 		$db->query("update ShakeList set shakeTime = SYSDATE() 
 		            where shakeAccount = '$message_data[account]' ");
          	sleep(4);
-		$res = $db->query("select userAccount, smallPhoto, gender, userName
+		$res = $db->row("select userAccount, smallPhoto, gender, userName
 				   from UserInf where userAccount = (select shakeAccount
                                    from ShakeList where shakeAccount <> '$message_data[account]' 
                                    and ABS(TIMEDIFF( (select shakeTime from ShakeList
@@ -125,23 +128,17 @@ class Event
                                                       TIMEDIFF( (select shakeTime from ShakeList
 			              			      where shakeAccount='$message_data[account]'),
 				                      shakeTime) ) ASC limit 1 offset 0)");
-
                 if($res){
 		//	print_r($res);
-			$sendMessage = '{"re_type":"3","re_message":[';
-                	foreach($res as $key => $k){
-                        	$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
-							     "\"re_photo\":\"$k[smallPhoto]\",".
-						             "\"re_gender\":\"$k[gender]\",".
-							     "\"re_name\":\"$k[userName]\"},";
-                	}
-                	$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
-                	$re_message = $re_message."]}+++++";
-                	echo "$re_message \n";
+			$sendMessage = "{\"re_type\":\"3\",\"re_message\":\"true\",".
+                	                "\"re_account\":\"$res[userAccount]\",".
+					"\"re_photo\":\"$res[smallPhoto]\",".
+					"\"re_gender\":\"$res[gender]\",".
+					"\"re_name\":\"$res[userName]\"}+++++";
 		}else{
-		     $re_message = '{"re_type":"3","re_message":"false"}+++++';
+		     	$sendMessage = '{"re_type":"3","re_message":"false"}+++++';
 		}
-		Gateway::sendToCurrentClient($re_message);
+		Gateway::sendToCurrentClient($sendMessage);
 	   	break;
 
 	   //FriendList
@@ -180,7 +177,7 @@ class Event
 		}
 		break;
 
-           //GameOneRecieve
+           //GameOneReceive
 	   case '5':
 		$res = $db->row("select rock, scissors, paper from GameOne where
 		        	   gameAccount = '$message_data[account]'");
@@ -371,12 +368,37 @@ class Event
                                 Gateway::sendToCurrentClient($sendMessage);
                                 $sendMessage = "";
                         }
-             //         Gateway::sendToCurrentClient('{"re_type":"15","re_message":"finish"}+++++');
 			$db->query("delete from OffMessage where receiver = '$message_data[account]'");
 		}else{
 			Gateway::sendToCurrentClient('{"re_type":"15","re_message":"false"}+++++');
                         echo "没有";
 		}
+		break;
+
+	    //SendInvi
+	    case '16':
+		$db->query("update InvitationTicket set flag = 1 where inviAccount = '$message_data[account]'");
+		break;
+	    
+	    //ReceiveInvi
+	    case '17':
+		$invi = $db->row("select * from InvitationTicket order by rand() limit 1");
+		if($invi[flag] == 1){
+			$res = $db->row("select userAccount,smallPhoto,gender,userName from UserInf 
+					 where userAccount = '$invi[inviAccount]'");
+			if($res){
+		//      print_r($res);
+				$sendMessage = "{\"re_type\":\"17\",\"re_message\":\"true\",".
+                        		        "\"re_account\":\"$res[userAccount]\",".
+						"\"re_photo\":\"$res[smallPhoto]\",".
+                                	        "\"re_gender\":\"$res[gender]\",".
+                                        	"\"re_name\":\"$res[userName]\"}+++++";
+                	}
+			$db->query("update InvitationTicket set flag = 0 where inviAccount = '$invi[inviAccount]'");
+		}else{
+			$sendMessage = '{"re_type":"17","re_message":"false"}+++++';
+                }
+                Gateway::sendToCurrentClient($sendMessage);	
 		break;
 
 	    default:

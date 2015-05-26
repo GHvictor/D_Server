@@ -147,19 +147,6 @@ class Event
                                    from UserInf A,FriendList B where A.userAccount = B.friAccount
                                    and B.friUser = '$message_data[account]' ");
                 if($res){
-                //      print_r($res);
-		/*
-			$sendMessage = '{"re_type":"4","re_message":[';
-			foreach($res as $key => $k){
-				$sendMessage = $sendMessage."{\"re_account\":\"$k[userAccount]\",".
-                                                             "\"re_photo\":\"$k[smallPhoto]\",".
-                                                             "\"re_gender\":\"$k[gender]\",".
-                                                             "\"re_name\":\"$k[userName]\"},";
-			}
-			$re_message = substr($sendMessage, 0, strlen($sendMessage)-1);
-			$re_message = $re_message."]}+++++";
-			echo "$re_message \n";
-		*/
 			foreach($res as $key => $k){
 				$sendMessage = "{\"re_type\":\"4\",\"re_account\":\"$k[userAccount]\",".
 						"\"re_photo\":\"$k[smallPhoto]\",".
@@ -183,9 +170,7 @@ class Event
 		        	   gameAccount = '$message_data[account]'");
 		$res_grade =  $db->row("select grade, sum from GameOne where
 					   gameAccount = '$message_data[friend]'");
-		if($res && $res_grade){
-			print_r($res);
-		
+		if($res && $res_grade){	
 			$sendMessage = "{\"re_type\":\"5\",".
 				        "\"re_grade\":\"$res_grade[grade]\",".
 					"\"re_sum\":\"$res_grade[sum]\",".
@@ -299,8 +284,15 @@ class Event
 
 	    //ChangeInf
 	    case '11':
-		$db->query("update UserInf set userName = '$message_data[cname]'
-			    where userAccount = '$message_data[account]'");
+		if($message_data['kind'] == 'name'){
+			$db->query("update UserInf set userName = '$message_data[cname]'
+				    where userAccount = '$message_data[account]' ");
+		}
+		if($message_data['kind'] == 'photo'){
+			$db->query("update UserInf set userPhoto = '$mesage_data[cphoto]',
+				    smallPhoto = '$message_data[csphoto]'
+				    where userAccount = '$message_data[account]'")
+		}
 		Gateway::sendToCurrentClient('{"re_type":"11","re_message":"true"}+++++');
 		break;
 
@@ -383,7 +375,7 @@ class Event
 	    //ReceiveInvi
 	    case '17':
 		$invi = $db->row("select * from InvitationTicket order by rand() limit 1");
-		if($invi[flag] == 1){
+		if($invi['flag'] == 1){
 			$res = $db->row("select userAccount,smallPhoto,gender,userName from UserInf 
 					 where userAccount = '$invi[inviAccount]'");
 			if($res){

@@ -37,14 +37,12 @@ class Event
 	    case '0':
 		$client_account = $message_data['account'];
 		$client_pass = $message_data['password']; 
-		echo "$client_account\n";
 		
 		if($client_pass == $db->single("select password from UserInf
                                                 where userAccount = '$client_account' ")){
-			if(-1 == $db->single("select reId from IdAccount where reAccount
+			if(true || -1 == $db->single("select reId from IdAccount where reAccount
                                            = '$client_account' ")){
-                        	echo "登录 $client_id\n";
-				//$re_client_id = $client_id + 1;
+                        	echo "登录 $client_id $client_account\n";
                  		$row_cout = $db->query("update IdAccount set reId = '$client_id'
                                 	                where reAccount = '$client_account' ");
 				$res = $db->row("select userName, smallPhoto, gender, userPhone, userEmail, birth
@@ -63,7 +61,7 @@ class Event
 			}
 		}else{
 			Gateway::sendToCurrentClient('{"re_type":"0","re_message":"false"}+++++');
-			echo "失败";
+			echo "登录失败";
 		}
 	    	break;
 
@@ -129,7 +127,6 @@ class Event
 			              			      where shakeAccount='$message_data[account]'),
 				                      shakeTime) ) ASC limit 1 offset 0)");
                 if($res){
-		//	print_r($res);
 			$sendMessage = "{\"re_type\":\"3\",\"re_message\":\"true\",".
                 	                "\"re_account\":\"$res[userAccount]\",".
 					"\"re_photo\":\"$res[smallPhoto]\",".
@@ -159,7 +156,7 @@ class Event
 			Gateway::sendToCurrentClient('{"re_type":"4","re_message":"finish"}+++++');
                 }else{
 			$re_message = '{"re_type":"4","re_message":"false"}+++++';
-                        echo "并没有 \n";	
+                        echo "没有摇到 \n";	
 			Gateway::sendToCurrentClient($re_message);
 		}
 		break;
@@ -177,7 +174,6 @@ class Event
 					"\"re_rock\":\"$res[rock]\",".
 					"\"re_scissors\":\"$res[scissors]\",".
 					"\"re_paper\":\"$res[scissors]\"}+++++";
-			echo "$sendMessage \n";
 		}else{
 		     $sendMessage = '{"re_type":"5","re_message":"false"}+++++';
 		}
@@ -260,7 +256,6 @@ class Event
 		          SIN(('$message_data[latitude]' *PI()/180-latitude*PI()/180)/2),2) + 
 			  COS('$message_data[latitude]' *PI()/180)*COS(latitude*PI()/180)*
 			  POW(SIN(('$message_data[longtitude]' *PI()/180-longtitude*PI()/180)/2),2)))*1000) < 1000)");
-	        print_r($res);
 		if($res){
 			foreach($res as $key => $k){
                                 $sendMessage = "{\"re_type\":\"10\",\"re_account\":\"$k[userAccount]\",".
@@ -277,7 +272,7 @@ class Event
                         Gateway::sendToCurrentClient('{"re_type":"10","re_message":"finish"}+++++');
                 }else{
                         $re_message = '{"re_type":"10","re_message":"false"}+++++';
-                        echo "并没有 \n";
+                        echo "没有人呀 \n";
                         Gateway::sendToCurrentClient($re_message);
                 }	
 		break;
@@ -363,7 +358,7 @@ class Event
 			$db->query("delete from OffMessage where receiver = '$message_data[account]'");
 		}else{
 			Gateway::sendToCurrentClient('{"re_type":"15","re_message":"false"}+++++');
-                        echo "没有";
+                        echo "没有离线消息";
 		}
 		break;
 
@@ -379,7 +374,6 @@ class Event
 			$res = $db->row("select userAccount,smallPhoto,gender,userName from UserInf 
 					 where userAccount = '$invi[inviAccount]'");
 			if($res){
-		//      print_r($res);
 				$sendMessage = "{\"re_type\":\"17\",\"re_message\":\"true\",".
                         		        "\"re_account\":\"$res[userAccount]\",".
 						"\"re_photo\":\"$res[smallPhoto]\",".
@@ -407,11 +401,8 @@ class Event
        // 广播 xxx 退出了
        global $db;
        $db = Db::instance('DecipherDb');
-
-       echo "$client_id \n";
-       //$re_client_id = $client_id + 1;
+       echo "$client_id退出了 \n";
        $row_cout = $db->query("update IdAccount set reId = -1
-                               where reId = '$client_id' ");	
-  //     GateWay::sendToAll("{\"re_type\":\"close\",\"id\":\"'$client_id'\"}+++++");
+                               where reId = '$client_id' ");
    }
 }

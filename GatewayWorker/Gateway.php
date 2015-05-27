@@ -253,7 +253,6 @@ class Gateway extends Worker
             $this->log($msg);
             return false;
         }
-	//echo "$address \n";
         return true;
     }
     
@@ -392,7 +391,7 @@ class Gateway extends Worker
                 {
 		   $test = $this->_clientConnections[$data['client_id']];
 		   print_r($test->gatewayHeader['client_ip']);
-		    echo ":";
+		   echo ":";
                    print_r($test->gatewayHeader['client_port']);
 		   echo "\n";
                     $this->_clientConnections[$data['client_id']]->send($data['body']);

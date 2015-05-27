@@ -223,8 +223,6 @@ class Gateway
        $gateway_data = GatewayProtocol::$empty;
        $gateway_data['cmd'] = $cmd;
        $gateway_data['client_id'] = $client_id ? $client_id : Context::$client_id;
-       echo "$gateway_data[client_id] \n";
-       //echo " +++++ $client_id  \n ";
        $gateway_data['body'] = $message;
        
        return self::sendToGateway($address, $gateway_data);

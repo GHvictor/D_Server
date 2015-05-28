@@ -372,15 +372,19 @@ class Event
 		$invi = $db->row("select * from InvitationTicket order by rand() limit 1");
 		if($invi['flag'] == 1){
 			$res = $db->row("select userAccount,smallPhoto,gender,userName from UserInf 
-					 where userAccount = '$invi[inviAccount]'");
+					 where userAccount = '$invi[inviAccount]' and
+					 userAccount <> '$message_data[account]'");
 			if($res){
 				$sendMessage = "{\"re_type\":\"17\",\"re_message\":\"true\",".
                         		        "\"re_account\":\"$res[userAccount]\",".
 						"\"re_photo\":\"$res[smallPhoto]\",".
                                 	        "\"re_gender\":\"$res[gender]\",".
                                         	"\"re_name\":\"$res[userName]\"}+++++";
-                	}
-			$db->query("update InvitationTicket set flag = 0 where inviAccount = '$invi[inviAccount]'");
+				$db->query("update InvitationTicket set flag = 0 
+					    where inviAccount = '$invi[inviAccount]'");
+			}else{
+				$sendMessage = '{"re_type":"17","re_message":"false"}+++++';
+			}
 		}else{
 			$sendMessage = '{"re_type":"17","re_message":"false"}+++++';
                 }
@@ -401,7 +405,7 @@ class Event
        // 广播 xxx 退出了
        global $db;
        $db = Db::instance('DecipherDb');
-       echo "$client_id退出了 \n";
+       echo "$client_id Quit \n";
        $row_cout = $db->query("update IdAccount set reId = -1
                                where reId = '$client_id' ");
    }
